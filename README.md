@@ -22,10 +22,13 @@
 ## Быстрый старт
 
 ### 1. Клонирование репозитория
-git clone https://github.com/ваш-логин/fruit-counter.git
-cd fruit-counter
+- git clone https://github.com/ваш-логин/fruit-counter.git
+- cd fruit-counter
 ### 2. Установка зависимостей
 pip install -r requirements.txt
+### 3. Правки
+- В файле models.py заменить строчку с моделью на ваш путь 
+- model = YOLO('C:/Users/anyak/Desktop/test/test_venv/fruit-counter-yolo/best.pt')
 ### 3. Запуск приложения
 python app.py
 
