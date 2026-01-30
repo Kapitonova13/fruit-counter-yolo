@@ -2,7 +2,6 @@ import os
 import json
 from datetime import datetime
 import pandas as pd
-from fpdf import FPDF
 import numpy as np
 
 def load_history(file_path='history.json'):
@@ -41,5 +40,6 @@ def generate_excel(history_file, reports_folder):
     excel_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     excel_path = os.path.join(reports_folder, excel_filename)
     df.to_excel(excel_path, index=False)
+
 
     return excel_filename
