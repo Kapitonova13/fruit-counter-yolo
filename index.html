@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🍎 Подсчет фруктов в Colab</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: black;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .camera-section {
+            margin: 20px 0;
+        }
+
+        #cameraView {
+            width: 100%;
+            height: 300px;
+            background: #333;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s;
+            margin: 5px;
+            width: calc(50% - 10px);
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-success {
+            background: #38a169;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            margin-top: 20px;
+        }
+
+        .fruit-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .total {
+            background: #38a169;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+
+        .image-result {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-left: 4px solid #667eea;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .history-time {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #38a169;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍎 Подсчет фруктов</h1>
+            <p>яблоки, апельсины, бананы</p>
+        </div>
+
+        <div class="content">
+            <!-- Левая колонка -->
+            <div class="card">
+                <h2>📤 Загрузка изображения</h2>
+
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 3em; color: #667eea;">📁</div>
+                    <p>Нажмите для выбора файла</p>
+                    <p><small>JPG, PNG, GIF (до 16MB)</small></p>
+                    <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect()">
+                </div>
+
+                <div class="camera-section">
+                    <h3>📷 Использовать камеру</h3>
+                    <video id="cameraView" autoplay></video>
+                    <div class="btn-group">
+                        <button class="btn" onclick="startCamera()">Включить камеру</button>
+                        <button class="btn" id="captureBtn" onclick="capturePhoto()" disabled>Сделать снимок</button>
+                        <button class="btn btn-danger" id="stopBtn" onclick="stopCamera()" disabled>Выключить</button>
+                    </div>
+                </div>
+
+                <button class="btn" id="processBtn" onclick="processImage()" disabled style="width: 100%; margin-top: 20px;">
+                    🔍 Начать обработку
+                </button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Обработка изображения...</p>
+                </div>
+
+                <div class="status" id="status"></div>
+
+                <div class="btn-group" style="margin-top: 20px;">
+                    <!-- <button class="btn btn-danger" onclick="generatePDF()">📄 PDF</button> -->
+                    <button class="btn btn-success" onclick="generateExcel()">📊 Excel</button>
+                    <button class="btn btn-danger" onclick="clearHistory()">🗑️ Очистить историю</button>
+                </div>
+            </div>
+
+            <!-- Правая колонка -->
+            <div class="card">
+                <h2>📊 Результаты</h2>
+
+                <div id="resultsSection" style="display: none;">
+                    <div id="fruitResults"></div>
+
+                    <div class="total" id="totalCount">
+                        Всего фруктов: <span id="totalFruits">0</span>
+                    </div>
+
+                    <h3>Обработанное изображение:</h3>
+                    <img id="resultImage" class="image-result" src="" alt="Результат">
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3>🕐 История запросов</h3>
+                    <p>Всего запросов: <strong id="requestCount">0</strong></p>
+                    <div id="historyList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Переменные
+        let stream = null;
+        let currentFile = null;
+        let cameraPhoto = null;
+
+        // Обработка выбора файла
+        function handleFileSelect() {
+            const fileInput = document.getElementById('fileInput');
+            const processBtn = document.getElementById('processBtn');
+
+            if (fileInput.files.length > 0) {
+                currentFile = fileInput.files[0];
+                processBtn.disabled = false;
+                cameraPhoto = null;
+                showStatus('Файл выбран: ' + currentFile.name, 'success');
+            }
+        }
+
+        // Управление камерой
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const cameraView = document.getElementById('cameraView');
+                cameraView.srcObject = stream;
+                cameraView.style.display = 'block';
+
+                document.getElementById('captureBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('fileInput').disabled = true;
+
+                showStatus('Камера включена', 'success');
+            } catch (err) {
+                showStatus('Ошибка камеры: ' + err.message, 'error');
+            }
+        }
+
+        function capturePhoto() {
+            const cameraView = document.getElementById('cameraView');
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraView.videoWidth;
+            canvas.height = cameraView.videoHeight;
+            canvas.getContext('2d').drawImage(cameraView, 0, 0);
+            cameraPhoto = canvas.toDataURL('image/jpeg');
+            currentFile = null;
+
+            document.getElementById('processBtn').disabled = false;
+            showStatus('Снимок сделан!', 'success');
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                document.getElementById('cameraView').style.display = 'none';
+                document.getElementById('captureBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('fileInput').disabled = false;
+                stream = null;
+            }
+        }
+
+        // Обработка изображения
+        async function processImage() {
+            const loading = document.getElementById('loading');
+            const processBtn = document.getElementById('processBtn');
+
+            loading.style.display = 'block';
+            processBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+
+                if (cameraPhoto) {
+                    // Отправляем фото с камеры
+                    const response = await fetch('/process_camera', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'image=' + encodeURIComponent(cameraPhoto)
+                    });
+
+                    await handleResponse(response);
+
+                } else if (currentFile) {
+                    // Отправляем файл
+                    formData.append('file', currentFile);
+                    const response = await fetch('/process_file', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    await handleResponse(response);
+                }
+
+            } catch (err) {
+                showStatus('Ошибка: ' + err.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+                processBtn.disabled = false;
+            }
+        }
+
+        async function handleResponse(response) {
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Отображаем результаты
+            displayResults(data);
+            showStatus('Обработка завершена!', 'success');
+            updateHistory();
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const fruitResults = document.getElementById('fruitResults');
+            const totalFruits = document.getElementById('totalFruits');
+            const resultImage = document.getElementById('resultImage');
+
+            resultsSection.style.display = 'block';
+            fruitResults.innerHTML = '';
+
+            // Отображаем фрукты
+            for (const [fruit, count] of Object.entries(data.fruit_counts)) {
+                const div = document.createElement('div');
+                div.className = 'fruit-item';
+                div.innerHTML = `<span>${fruit}</span><span>${count} шт.</span>`;
+                fruitResults.appendChild(div);
+            }
+
+            totalFruits.textContent = data.total_fruits;
+            resultImage.src = data.result_image;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status status-' + type;
+            status.style.display = 'block';
+
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+
+        // Отчеты
+        // async function generatePDF() {
+        //     const response = await fetch('/generate_pdf');
+        //     const data = await response.json();
+
+        //     if (data.error) {
+        //         showStatus(data.error, 'error');
+        //     } else {
+        //         window.open('/reports/' + data.filename, '_blank');
+        //         showStatus('PDF отчет сгенерирован!', 'success');
+        //     }
+        // }
+        
+
+        async function generateExcel() {
+            const response = await fetch('/generate_excel');
+            const data = await response.json();
+
+            if (data.error) {
+                showStatus(data.error, 'error');
+            } else {
+                window.open('/reports/' + data.filename, '_blank');
+                showStatus('Excel отчет сгенерирован!', 'success');
+            }
+        }
+
+        async function clearHistory() {
+            if (confirm('Очистить всю историю?')) {
+                const response = await fetch('/clear_history');
+                if (response.ok) {
+                    document.getElementById('historyList').innerHTML = '';
+                    document.getElementById('requestCount').textContent = '0';
+                    showStatus('История очищена!', 'success');
+                }
+            }
+        }
+
+        async function updateHistory() {
+            const response = await fetch('/get_history');
+            const history = await response.json();
+            const historyList = document.getElementById('historyList');
+            const requestCount = document.getElementById('requestCount');
+
+            requestCount.textContent = history.length;
+            historyList.innerHTML = '';
+
+            // Показываем последние 5 записей
+            history.slice(-5).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+
+                let fruits = '';
+                for (const [fruit, count] of Object.entries(item.fruit_counts)) {
+                    fruits += `${fruit}: ${count}, `;
+                }
+
+                div.innerHTML = `
+                    <div class="history-time">${item.timestamp}</div>
+                    <div>Фруктов: ${item.total_fruits} (${fruits.slice(0, -2)})</div>
+                `;
+
+                historyList.prepend(div);
+            });
+        }
+
+        // Загружаем историю при старте
+        document.addEventListener('DOMContentLoaded', updateHistory);
+    </script>
+</body>
+</html>
